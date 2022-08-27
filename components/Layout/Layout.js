@@ -3,12 +3,12 @@ import HeadTags from './HeadTags'
 import Navbar from './Navbar'
 import { Container } from 'semantic-ui-react'
 import nprogress from 'nprogress'
-import Router from 'next/router'
+import router from 'next/router'
 
 function Layout({ children }) {
-  Router.onRouteChangeStart = () => nprogress.start()
-  Router.onRouteChangeComplete = () => nprogress.done()
-  Router.onRouteChangeError = () => nprogress.done()
+  router.onRouteChangeStart = () => nprogress.start()
+  router.onRouteChangeComplete = () => nprogress.done()
+  router.onRouteChangeError = () => nprogress.done()
   return (
     <>
       <HeadTags />

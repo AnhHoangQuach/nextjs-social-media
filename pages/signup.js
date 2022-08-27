@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Form, Button, Message, Segment, Divider } from 'semantic-ui-react'
 import CommonInputs from '../components/Common/CommonInputs'
 import ImageDropDiv from '../components/Common/ImageDropDiv'
@@ -7,6 +7,7 @@ import axios from 'axios'
 import baseUrl from '../utils/baseUrl'
 import { registerUser } from '../utils/authUser'
 import uploadPic from '../utils/uploadPicToCloudinary'
+import debounce from 'lodash.debounce'
 const regexUserName = /^(?!.*\.\.)(?!.*\.$)[^\W][\w.]{0,29}$/
 let cancel
 
@@ -55,24 +56,23 @@ function Signup() {
     isUser ? setSubmitDisabled(false) : setSubmitDisabled(true)
   }, [user])
 
-  const checkUsername = async () => {
+  const checkUsername = async (value) => {
     setUsernameLoading(true)
     try {
       cancel && cancel()
 
       const CancelToken = axios.CancelToken
 
-      const res = await axios.get(`${baseUrl}/api/signup/${username}`, {
+      const res = await axios.get(`${baseUrl}/api/signup/${value}`, {
         cancelToken: new CancelToken((canceler) => {
           cancel = canceler
         }),
       })
 
-      if (errorMsg !== null) setErrorMsg(null)
-
       if (res.data === 'Available') {
+        setErrorMsg(null)
         setUsernameAvailable(true)
-        setUser((prev) => ({ ...prev, username }))
+        setUser((prev) => ({ ...prev, username: value }))
       }
     } catch (error) {
       setErrorMsg('Username Not Available')
@@ -81,9 +81,20 @@ function Signup() {
     setUsernameLoading(false)
   }
 
-  useEffect(() => {
-    username === '' ? setUsernameAvailable(false) : checkUsername()
-  }, [username])
+  const debounceDropDown = useCallback(
+    debounce((value) => checkUsername(value), 1000),
+    []
+  )
+
+  const handleDebounceInput = (e) => {
+    setUsername(e.target.value)
+    if (regexUserName.test(e.target.value)) {
+      setUsernameAvailable(true)
+      debounceDropDown(e.target.value)
+    } else {
+      setUsernameAvailable(false)
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -168,14 +179,7 @@ function Signup() {
             label="Username"
             placeholder="Username"
             value={username}
-            onChange={(e) => {
-              setUsername(e.target.value)
-              if (regexUserName.test(e.target.value)) {
-                setUsernameAvailable(true)
-              } else {
-                setUsernameAvailable(false)
-              }
-            }}
+            onChange={handleDebounceInput}
             fluid
             icon={usernameAvailable ? 'check' : 'close'}
             iconPosition="left"
