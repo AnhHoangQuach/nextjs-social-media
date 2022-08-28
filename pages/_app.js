@@ -16,9 +16,7 @@ class MyApp extends App {
 
     if (!token) {
       protectedRoutes && redirectUser(ctx, '/login')
-    }
-    //
-    else {
+    } else {
       if (Component.getInitialProps) {
         pageProps = await Component.getInitialProps(ctx)
       }
