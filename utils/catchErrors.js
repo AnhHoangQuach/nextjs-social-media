@@ -8,7 +8,7 @@ const catchErrors = (error) => {
 
     console.error(errorMsg)
   } else if (error.request) {
-    // if the request was made and no response was recevied from server
+    // if the request was made and no response was received from server
     errorMsg = error.request
 
     console.error(errorMsg)
