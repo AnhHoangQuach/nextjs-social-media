@@ -6,6 +6,8 @@ const PostModel = require('../models/PostModel')
 const FollowerModel = require('../models/FollowerModel')
 const uuid = require('uuid').v4
 
+// CREATE A POST
+
 router.post('/', authMiddleware, async (req, res) => {
   const { text, location, picUrl } = req.body
 
@@ -30,6 +32,8 @@ router.post('/', authMiddleware, async (req, res) => {
   }
 })
 
+// GET ALL POSTS
+
 router.get('/', authMiddleware, async (req, res) => {
   const { page } = req.query
 
@@ -53,12 +57,43 @@ router.get('/', authMiddleware, async (req, res) => {
         .populate([{ path: 'user' }, { path: 'comments.user' }])
     }
 
-    return res.json(posts)
+    if (posts.length === 0) {
+      return res.json([])
+    }
+
+    let postsToBeSent = []
+    const { userId } = req
+
+    const loggedUser = await FollowerModel.findOne({ user: userId })
+
+    if (loggedUser.following.length === 0) {
+      postsToBeSent = posts.filter((post) => post.user._id.toString() === userId)
+    }
+    //
+    else {
+      for (let i = 0; i < loggedUser.following.length; i++) {
+        const foundPostsFromFollowing = posts.filter(
+          (post) => post.user._id.toString() === loggedUser.following[i].user.toString()
+        )
+
+        if (foundPostsFromFollowing.length > 0) postsToBeSent.push(...foundPostsFromFollowing)
+      }
+
+      const foundOwnPosts = posts.filter((post) => post.user._id.toString() === userId)
+      if (foundOwnPosts.length > 0) postsToBeSent.push(...foundOwnPosts)
+    }
+
+    postsToBeSent.length > 0 &&
+      postsToBeSent.sort((a, b) => [new Date(b.createdAt) - new Date(a.createdAt)])
+
+    return res.json(postsToBeSent)
   } catch (error) {
     console.error(error)
     return res.status(500).send(`Server error`)
   }
 })
+
+// GET POST BY ID
 
 router.get('/:postId', authMiddleware, async (req, res) => {
   try {
@@ -77,6 +112,8 @@ router.get('/:postId', authMiddleware, async (req, res) => {
     return res.status(500).send(`Server error`)
   }
 })
+
+// DELETE POST
 
 router.delete('/:postId', authMiddleware, async (req, res) => {
   try {
@@ -108,6 +145,8 @@ router.delete('/:postId', authMiddleware, async (req, res) => {
   }
 })
 
+// LIKE A POST
+
 router.post('/like/:postId', authMiddleware, async (req, res) => {
   try {
     const { postId } = req.params
@@ -133,6 +172,8 @@ router.post('/like/:postId', authMiddleware, async (req, res) => {
     return res.status(500).send(`Server error`)
   }
 })
+
+// UNLIKE A POST
 
 router.put('/unlike/:postId', authMiddleware, async (req, res) => {
   try {
@@ -163,6 +204,8 @@ router.put('/unlike/:postId', authMiddleware, async (req, res) => {
   }
 })
 
+// GET ALL LIKES OF A POST
+
 router.get('/like/:postId', authMiddleware, async (req, res) => {
   try {
     const { postId } = req.params
@@ -179,13 +222,15 @@ router.get('/like/:postId', authMiddleware, async (req, res) => {
   }
 })
 
+// CREATE A COMMENT
+
 router.post('/comment/:postId', authMiddleware, async (req, res) => {
   try {
     const { postId } = req.params
 
     const { text } = req.body
 
-    if (text.length < 1) return res.status(401).send('Comment should be atleast 1 character')
+    if (text.length < 1) return res.status(401).send('Comment should be at least 1 character')
 
     const post = await PostModel.findById(postId)
 
@@ -207,6 +252,8 @@ router.post('/comment/:postId', authMiddleware, async (req, res) => {
     return res.status(500).send(`Server error`)
   }
 })
+
+// DELETE A COMMENT
 
 router.delete('/:postId/:commentId', authMiddleware, async (req, res) => {
   try {

@@ -9,9 +9,17 @@ require('dotenv').config({ path: './config.env' })
 const connectDb = require('./utilsServer/connectDb')
 connectDb()
 app.use(express.json())
+const cors = require('cors')
 const PORT = process.env.PORT || 3000
 
 nextApp.prepare().then(() => {
+  app.use(
+    cors({
+      origin: '*',
+      methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
+    })
+  )
+
   app.use('/api/signup', require('./api/signup'))
   app.use('/api/auth', require('./api/auth'))
   app.use('/api/search', require('./api/search'))

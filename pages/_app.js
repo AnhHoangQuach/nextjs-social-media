@@ -12,7 +12,8 @@ class MyApp extends App {
     const { token } = parseCookies(ctx)
     let pageProps = {}
 
-    const protectedRoutes = ctx.pathname === '/'
+    const protectedRoutes =
+      ctx.pathname === '/' || ctx.pathname === '/[username]' || ctx.pathname === '/post/[postId]'
 
     if (!token) {
       protectedRoutes && redirectUser(ctx, '/login')

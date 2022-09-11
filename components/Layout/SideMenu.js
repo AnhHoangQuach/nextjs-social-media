@@ -14,7 +14,7 @@ function SideMenu({ user: { unreadNotification, email, unreadMessage, username }
       <List style={{ paddingTop: '1rem' }} size="big" verticalAlign="middle" selection>
         <Link href="/">
           <List.Item active={isActive('/')}>
-            <Icon name="home" size="large" color={isActive('/') && 'teal'} />
+            <Icon name="home" size="large" color={isActive('/') ? 'teal' : null} />
             <List.Content>
               <List.Header content="Home" />
             </List.Content>
