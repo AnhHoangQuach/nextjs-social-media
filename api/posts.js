@@ -9,7 +9,7 @@ const uuid = require('uuid').v4
 router.post('/', authMiddleware, async (req, res) => {
   const { text, location, picUrl } = req.body
 
-  if (text.length < 1) return res.status(401).send('Text must be atleast 1 character')
+  if (text.length < 1) return res.status(401).send('Text must be at least 1 character')
 
   try {
     const newPost = {
@@ -31,9 +31,9 @@ router.post('/', authMiddleware, async (req, res) => {
 })
 
 router.get('/', authMiddleware, async (req, res) => {
-  const { pageNumber } = req.query
+  const { page } = req.query
 
-  const number = Number(pageNumber)
+  const number = Number(page)
   const size = 8
 
   try {
@@ -43,16 +43,14 @@ router.get('/', authMiddleware, async (req, res) => {
       posts = await PostModel.find()
         .limit(size)
         .sort({ createdAt: -1 })
-        .populate('user')
-        .populate('comments.user')
+        .populate([{ path: 'user' }, { path: 'comments.user' }])
     } else {
       const skips = size * (number - 1)
       posts = await PostModel.find()
         .skip(skips)
         .limit(size)
         .sort({ createdAt: -1 })
-        .populate('user')
-        .populate('comments.user')
+        .populate([{ path: 'user' }, { path: 'comments.user' }])
     }
 
     return res.json(posts)
@@ -64,9 +62,10 @@ router.get('/', authMiddleware, async (req, res) => {
 
 router.get('/:postId', authMiddleware, async (req, res) => {
   try {
-    const post = await PostModel.findById(req.params.postId)
-      .populate('user')
-      .populate('comments.user')
+    const post = await PostModel.findById(req.params.postId).populate([
+      { path: 'user' },
+      { path: 'comments.user' },
+    ])
 
     if (!post) {
       return res.status(404).send('Post not found')
