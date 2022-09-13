@@ -13,7 +13,10 @@ class MyApp extends App {
     let pageProps = {}
 
     const protectedRoutes =
-      ctx.pathname === '/' || ctx.pathname === '/[username]' || ctx.pathname === '/post/[postId]'
+      ctx.pathname === '/' ||
+      ctx.pathname === '/[username]' ||
+      ctx.pathname === '/post/[postId]' ||
+      ctx.pathname === '/notifications'
 
     if (!token) {
       protectedRoutes && redirectUser(ctx, '/login')
