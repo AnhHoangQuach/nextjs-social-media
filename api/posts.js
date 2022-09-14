@@ -74,9 +74,7 @@ router.get('/', authMiddleware, async (req, res) => {
 
     if (loggedUser.following.length === 0) {
       postsToBeSent = posts.filter((post) => post.user._id.toString() === userId)
-    }
-    //
-    else {
+    } else {
       for (let i = 0; i < loggedUser.following.length; i++) {
         const foundPostsFromFollowing = posts.filter(
           (post) => post.user._id.toString() === loggedUser.following[i].user.toString()
